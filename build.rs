@@ -21,7 +21,9 @@ fn main() {
     // 定义编译宏
     build
         .define("HAVE_CONFIG_H", None)
-        .define("TAKEHIRO_IEEE754_HACK", None);
+        .define("TAKEHIRO_IEEE754_HACK", "1")  // 启用 IEEE 754 浮点优化
+        .define("FLOAT8", "float")              // 明确 FLOAT8 类型为 float
+        .define("REAL_IS_FLOAT", "1");          // 使用 float 而非 double
 
     // 添加标准库头文件宏
     if cfg!(target_os = "macos") || cfg!(target_os = "linux") {
@@ -65,7 +67,7 @@ fn main() {
     // 设置编译选项
     build
         .warnings(false)  // 禁用警告（LAME 代码有很多旧风格）
-        .opt_level(2);    // 优化级别
+        .opt_level(3);    // 最高优化级别
 
     // 编译静态库
     build.compile("mp3lame");

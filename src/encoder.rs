@@ -84,6 +84,7 @@ impl LameEncoder {
     /// # 返回
     ///
     /// 返回写入 `mp3_buffer` 的字节数
+    #[inline(always)]
     pub fn encode(
         &mut self,
         pcm_left: &[i16],
@@ -126,6 +127,7 @@ impl LameEncoder {
     /// # 返回
     ///
     /// 返回写入 `mp3_buffer` 的字节数
+    #[inline(always)]
     pub fn encode_interleaved(
         &mut self,
         pcm_interleaved: &[i16],
@@ -180,15 +182,14 @@ impl LameEncoder {
     /// # Ok(())
     /// # }
     /// ```
+    #[inline(always)]
     pub fn encode_mono(&mut self, pcm: &[i16], mp3_buffer: &mut [u8]) -> Result<usize> {
-        let num_samples = pcm.len();
-
         unsafe {
             let result = ffi::lame_encode_buffer(
                 self.gfp,
                 pcm.as_ptr(),
-                pcm.as_ptr(), // 单声道使用相同的缓冲区
-                num_samples as i32,
+                ptr::null(), // 单声道传递 null 指针
+                pcm.len() as i32,
                 mp3_buffer.as_mut_ptr(),
                 mp3_buffer.len() as i32,
             );
@@ -212,6 +213,7 @@ impl LameEncoder {
     /// # 返回
     ///
     /// 返回写入的字节数
+    #[inline(always)]
     pub fn flush(&mut self, mp3_buffer: &mut [u8]) -> Result<usize> {
         unsafe {
             let result =
