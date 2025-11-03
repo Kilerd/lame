@@ -148,6 +148,17 @@ AC_COMPILE_IFELSE(
 	[ac_cv_header_xmmintrin_h=no])
 AC_MSG_RESULT(${ac_cv_header_xmmintrin_h})
 
+dnl Checks for actually working AVX2 intrinsics
+AC_MSG_CHECKING(working AVX2 intrinsics)
+AC_COMPILE_IFELSE(
+	[AC_LANG_PROGRAM(
+		[[#include <immintrin.h>]],
+		[[__m256 a = _mm256_setzero_ps();]])],
+	[AC_DEFINE([HAVE_IMMINTRIN_H], [1], [Define if AVX2 intrinsics work.])
+	 ac_cv_header_immintrin_h=yes],
+	[ac_cv_header_immintrin_h=no])
+AC_MSG_RESULT(${ac_cv_header_immintrin_h})
+
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_C_INLINE

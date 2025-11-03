@@ -103,6 +103,12 @@ init_xrpow_core_init(lame_internal_flags * const gfc)
     gfc->init_xrpow_core = init_xrpow_core_sse;
 #endif
 #endif
+
+#if defined(HAVE_IMMINTRIN_H)
+    /* Prefer AVX2 over SSE if available */
+    if (gfc->CPU_features.AVX2)
+        gfc->init_xrpow_core = init_xrpow_core_avx2;
+#endif
 }
 
 

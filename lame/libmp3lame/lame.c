@@ -604,6 +604,12 @@ lame_init_params(lame_global_flags * gfp)
         gfc->CPU_features.SSE2 = 0;
     }
 
+    /* Detect AVX/AVX2/FMA support */
+    gfc->CPU_features.AVX = has_AVX();
+    gfc->CPU_features.AVX2 = has_AVX2();
+    gfc->CPU_features.FMA = has_FMA();
+    gfc->CPU_features.AVX512F = has_AVX512F();
+
 
     cfg->vbr = gfp->VBR;
     cfg->error_protection = gfp->error_protection;
@@ -1344,7 +1350,9 @@ lame_print_config(const lame_global_flags * gfp)
     MSGF(gfc, "warning: alpha versions should be used for testing only\n");
 #endif
     if (gfc->CPU_features.MMX
-        || gfc->CPU_features.AMD_3DNow || gfc->CPU_features.SSE || gfc->CPU_features.SSE2) {
+        || gfc->CPU_features.AMD_3DNow || gfc->CPU_features.SSE || gfc->CPU_features.SSE2
+        || gfc->CPU_features.AVX || gfc->CPU_features.AVX2 || gfc->CPU_features.FMA
+        || gfc->CPU_features.AVX512F) {
         char    text[256] = { 0 };
         int     fft_asm_used = 0;
 #ifdef HAVE_NASM
@@ -1360,6 +1368,11 @@ lame_print_config(const lame_global_flags * gfp)
             fft_asm_used = 3;
         }
 # endif
+#endif
+#ifdef HAVE_IMMINTRIN_H
+        if (gfc->CPU_features.AVX2) {
+            fft_asm_used = 4;
+        }
 #endif
         if (gfc->CPU_features.MMX) {
 #ifdef MMX_choose_table
@@ -1380,6 +1393,18 @@ lame_print_config(const lame_global_flags * gfp)
         }
         if (gfc->CPU_features.SSE2) {
             concatSep(text, ", ", (fft_asm_used == 3) ? "SSE2 (ASM used)" : "SSE2");
+        }
+        if (gfc->CPU_features.AVX) {
+            concatSep(text, ", ", "AVX");
+        }
+        if (gfc->CPU_features.AVX2) {
+            concatSep(text, ", ", (fft_asm_used == 4) ? "AVX2 (ASM used)" : "AVX2");
+        }
+        if (gfc->CPU_features.FMA) {
+            concatSep(text, ", ", "FMA");
+        }
+        if (gfc->CPU_features.AVX512F) {
+            concatSep(text, ", ", "AVX-512F");
         }
         MSGF(gfc, "CPU features: %s\n", text);
     }

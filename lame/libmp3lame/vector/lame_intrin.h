@@ -30,4 +30,10 @@ init_xrpow_core_sse(gr_info * const cod_info, FLOAT xrpow[576], int upper, FLOAT
 void
 fht_SSE2(FLOAT* , int);
 
+void
+init_xrpow_core_avx2(gr_info * const cod_info, FLOAT xrpow[576], int upper, FLOAT * sum);
+
+void
+fht_AVX2(FLOAT* , int);
+
 #endif

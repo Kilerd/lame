@@ -336,4 +336,11 @@ init_fft(lame_internal_flags * const gfc)
 #endif
 #endif
 #endif
+
+#ifdef HAVE_IMMINTRIN_H
+    /* Prefer AVX2 over SSE if available */
+    if (gfc->CPU_features.AVX2) {
+        gfc->fft_fht = fht_AVX2;
+    }
+#endif
 }

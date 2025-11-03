@@ -781,6 +781,10 @@ extern int has_MMX_nasm(void);
 extern int has_3DNow_nasm(void);
 extern int has_SSE_nasm(void);
 extern int has_SSE2_nasm(void);
+extern int has_AVX_nasm(void);
+extern int has_AVX2_nasm(void);
+extern int has_FMA_nasm(void);
+extern int has_AVX512F_nasm(void);
 #endif
 
 int
@@ -828,6 +832,46 @@ has_SSE2(void)
 #else
     return 0;           /* don't know, assume not */
 #endif
+#endif
+}
+
+int
+has_AVX(void)
+{
+#ifdef HAVE_NASM
+    return has_AVX_nasm();
+#else
+    return 0;           /* don't know, assume not */
+#endif
+}
+
+int
+has_AVX2(void)
+{
+#ifdef HAVE_NASM
+    return has_AVX2_nasm();
+#else
+    return 0;           /* don't know, assume not */
+#endif
+}
+
+int
+has_FMA(void)
+{
+#ifdef HAVE_NASM
+    return has_FMA_nasm();
+#else
+    return 0;           /* don't know, assume not */
+#endif
+}
+
+int
+has_AVX512F(void)
+{
+#ifdef HAVE_NASM
+    return has_AVX512F_nasm();
+#else
+    return 0;           /* don't know, assume not */
 #endif
 }
 

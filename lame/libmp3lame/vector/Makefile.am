@@ -16,7 +16,7 @@ INCLUDES = @INCLUDES@ \
 
 DEFS = @DEFS@ @CONFIG_DEFS@
 
-xmm_sources = xmm_quantize_sub.c
+xmm_sources = xmm_quantize_sub.c avx2_quantize_sub.c
 
 if WITH_XMM
 liblamevectorroutines_la_SOURCES = $(xmm_sources)

@@ -14,6 +14,10 @@
 	globaldef	has_3DNow_nasm
 	globaldef	has_SSE_nasm
 	globaldef	has_SSE2_nasm
+	globaldef	has_AVX_nasm
+	globaldef	has_AVX2_nasm
+	globaldef	has_FMA_nasm
+	globaldef	has_AVX512F_nasm
 
         segment_code
 
@@ -103,5 +107,79 @@ return0:
 	popad
 	xor	eax,eax
 	ret
-        
+
+;---------------------------------------
+;	int  has_AVX_nasm (void)
+;---------------------------------------
+
+has_AVX_nasm:
+        pushad
+	call	testCPUID
+	jz	return0		; no CPUID command, so no AVX
+
+	mov	eax,0x1
+	CPUID
+	test	ecx,0x10000000	; test bit 28 (AVX)
+	jz	return0		; no AVX support
+	jmp	return1		; AVX support
+
+;---------------------------------------
+;	int  has_FMA_nasm (void)
+;---------------------------------------
+
+has_FMA_nasm:
+        pushad
+	call	testCPUID
+	jz	return0		; no CPUID command, so no FMA
+
+	mov	eax,0x1
+	CPUID
+	test	ecx,0x1000	; test bit 12 (FMA)
+	jz	return0		; no FMA support
+	jmp	return1		; FMA support
+
+;---------------------------------------
+;	int  has_AVX2_nasm (void)
+;---------------------------------------
+
+has_AVX2_nasm:
+        pushad
+	call	testCPUID
+	jz	return0		; no CPUID command, so no AVX2
+
+	; Check if leaf 7 is supported
+	mov	eax,0x0
+	CPUID
+	cmp	eax,0x7
+	jb	return0		; CPUID leaf 7 not supported
+
+	mov	eax,0x7
+	xor	ecx,ecx		; sub-leaf 0
+	CPUID
+	test	ebx,0x20	; test bit 5 (AVX2)
+	jz	return0		; no AVX2 support
+	jmp	return1		; AVX2 support
+
+;---------------------------------------
+;	int  has_AVX512F_nasm (void)
+;---------------------------------------
+
+has_AVX512F_nasm:
+        pushad
+	call	testCPUID
+	jz	return0		; no CPUID command, so no AVX-512F
+
+	; Check if leaf 7 is supported
+	mov	eax,0x0
+	CPUID
+	cmp	eax,0x7
+	jb	return0		; CPUID leaf 7 not supported
+
+	mov	eax,0x7
+	xor	ecx,ecx		; sub-leaf 0
+	CPUID
+	test	ebx,0x10000	; test bit 16 (AVX512F)
+	jz	return0		; no AVX-512F support
+	jmp	return1		; AVX-512F support
+
         end

@@ -518,7 +518,11 @@ extern  "C" {
             unsigned int AMD_3DNow:1; /* K6-2, K6-III, Athlon      */
             unsigned int SSE:1; /* Pentium III, Pentium 4    */
             unsigned int SSE2:1; /* Pentium 4, K8             */
-            unsigned int _unused:28;
+            unsigned int AVX:1; /* Sandy Bridge, Bulldozer   */
+            unsigned int AVX2:1; /* Haswell, Excavator        */
+            unsigned int FMA:1; /* Haswell, Piledriver       */
+            unsigned int AVX512F:1; /* Skylake-X, Zen 4       */
+            unsigned int _unused:24;
         } CPU_features;
 
 
@@ -588,6 +592,10 @@ extern  "C" {
     extern int has_3DNow(void);
     extern int has_SSE(void);
     extern int has_SSE2(void);
+    extern int has_AVX(void);
+    extern int has_AVX2(void);
+    extern int has_FMA(void);
+    extern int has_AVX512F(void);
 
 
 
