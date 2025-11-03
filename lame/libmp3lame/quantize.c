@@ -93,22 +93,33 @@ void
 init_xrpow_core_init(lame_internal_flags * const gfc)
 {
     gfc->init_xrpow_core = init_xrpow_core_c;
+    fprintf(stderr, "[LAME DEBUG] Using C quantization\n");
 
 #if defined(HAVE_XMMINTRIN_H)
-    if (gfc->CPU_features.SSE)
+    if (gfc->CPU_features.SSE) {
         gfc->init_xrpow_core = init_xrpow_core_sse;
+        fprintf(stderr, "[LAME DEBUG] Using SSE quantization\n");
+    }
 #endif
 #ifndef HAVE_NASM
 #ifdef MIN_ARCH_SSE
     gfc->init_xrpow_core = init_xrpow_core_sse;
+    fprintf(stderr, "[LAME DEBUG] Using SSE quantization (MIN_ARCH_SSE)\n");
 #endif
 #endif
 
 #if defined(HAVE_IMMINTRIN_H)
     /* Prefer AVX2 over SSE if available */
-    if (gfc->CPU_features.AVX2)
+    if (gfc->CPU_features.AVX2) {
         gfc->init_xrpow_core = init_xrpow_core_avx2;
+        fprintf(stderr, "[LAME DEBUG] Using AVX2 quantization *** OPTIMIZED ***\n");
+    }
+#else
+    fprintf(stderr, "[LAME DEBUG] HAVE_IMMINTRIN_H not defined - AVX2 disabled at compile time\n");
 #endif
+
+    fprintf(stderr, "[LAME DEBUG] CPU features: AVX=%d AVX2=%d FMA=%d\n",
+        gfc->CPU_features.AVX, gfc->CPU_features.AVX2, gfc->CPU_features.FMA);
 }
 
 

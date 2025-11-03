@@ -319,12 +319,15 @@ init_fft(lame_internal_flags * const gfc)
         gfc->cd_psy->window_s[i] = 0.5 * (1.0 - cos(2.0 * PI * (i + 0.5) / BLKSIZE_s));
 
     gfc->fft_fht = fht;
+    fprintf(stderr, "[LAME DEBUG] Using C FFT\n");
 #ifdef HAVE_NASM
     if (gfc->CPU_features.AMD_3DNow) {
         gfc->fft_fht = fht_3DN;
+        fprintf(stderr, "[LAME DEBUG] Using 3DNow! FFT\n");
     }
     else if (gfc->CPU_features.SSE) {
         gfc->fft_fht = fht_SSE;
+        fprintf(stderr, "[LAME DEBUG] Using SSE FFT\n");
     }
     else {
         gfc->fft_fht = fht;
@@ -333,6 +336,8 @@ init_fft(lame_internal_flags * const gfc)
 #ifdef HAVE_XMMINTRIN_H
 #ifdef MIN_ARCH_SSE
     gfc->fft_fht = fht_SSE2;
+    fprintf(stderr, "[LAME DEBUG] Using SSE2 FFT\n");
+#endif
 #endif
 #endif
 #endif
@@ -341,6 +346,9 @@ init_fft(lame_internal_flags * const gfc)
     /* Prefer AVX2 over SSE if available */
     if (gfc->CPU_features.AVX2) {
         gfc->fft_fht = fht_AVX2;
+        fprintf(stderr, "[LAME DEBUG] Using AVX2 FFT *** OPTIMIZED ***\n");
     }
+#else
+    fprintf(stderr, "[LAME DEBUG] HAVE_IMMINTRIN_H not defined - AVX2 FFT disabled at compile time\n");
 #endif
 }
