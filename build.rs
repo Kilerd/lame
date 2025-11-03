@@ -9,13 +9,18 @@ fn main() {
     // 1. 使用 autotools 构建 LAME
     println!("cargo:rerun-if-changed=lame/");
 
-    // 设置 CFLAGS 以避免 Linux 上的编译错误
+    // 设置 CFLAGS 以避免 Linux 上的编译错误和启用 AVX2
     // LAME 源码中有一些类型不兼容的警告，在 Linux GCC 上会被视为错误
     let mut cflags = std::env::var("CFLAGS").unwrap_or_default();
     if !cflags.is_empty() {
         cflags.push(' ');
     }
     cflags.push_str("-Wno-error=incompatible-pointer-types");
+
+    // 启用 AVX2 和 FMA 指令集（如果 CPU 支持）
+    // 这会让 configure 检测到 immintrin.h 并定义 HAVE_IMMINTRIN_H
+    cflags.push_str(" -mavx2 -mfma");
+
     std::env::set_var("CFLAGS", &cflags);
 
     let dst = autotools::Config::new(&lame_dir)
