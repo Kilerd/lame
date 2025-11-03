@@ -20,6 +20,7 @@ fn main() {
     std::env::set_var("CFLAGS", &cflags);
 
     let dst = autotools::Config::new(&lame_dir)
+        .enable_static()
         // 禁用不需要的功能
         .disable("frontend", None) // 不需要命令行工具
         .disable("decoder", None) // 不需要解码器
