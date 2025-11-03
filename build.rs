@@ -9,6 +9,15 @@ fn main() {
     // 1. 使用 autotools 构建 LAME
     println!("cargo:rerun-if-changed=lame/");
 
+    // 设置 CFLAGS 以避免 Linux 上的编译错误
+    // LAME 源码中有一些类型不兼容的警告，在 Linux GCC 上会被视为错误
+    let mut cflags = std::env::var("CFLAGS").unwrap_or_default();
+    if !cflags.is_empty() {
+        cflags.push(' ');
+    }
+    cflags.push_str("-Wno-error=incompatible-pointer-types");
+    std::env::set_var("CFLAGS", &cflags);
+
     let dst = autotools::Config::new(&lame_dir)
         // 禁用不需要的功能
         .disable("frontend", None)     // 不需要命令行工具
