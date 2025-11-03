@@ -410,13 +410,13 @@ set_id3v2tag(lame_global_flags* gfp, TextEncoding enc, int type, unsigned short 
         case TENC_UTF8:
             switch (type)
             {
-                case 'a': return id3tag_set_textinfo_utf8(gfp, "TPE1", str);
-                case 't': return id3tag_set_textinfo_utf8(gfp, "TIT2", str);
-                case 'l': return id3tag_set_textinfo_utf8(gfp, "TALB", str);
-                case 'g': return id3tag_set_textinfo_utf8(gfp, "TCON", str);
+                case 'a': return id3tag_set_textinfo_utf16(gfp, "TPE1", str);
+                case 't': return id3tag_set_textinfo_utf16(gfp, "TIT2", str);
+                case 'l': return id3tag_set_textinfo_utf16(gfp, "TALB", str);
+                case 'g': return id3tag_set_textinfo_utf16(gfp, "TCON", str);
                 case 'c': return id3tag_set_comment_utf16(gfp, 0, 0, str);
-                case 'n': return id3tag_set_textinfo_utf8(gfp, "TRCK", str);
-                case 'y': return id3tag_set_textinfo_utf8(gfp, "TYER", str);
+                case 'n': return id3tag_set_textinfo_utf16(gfp, "TRCK", str);
+                case 'y': return id3tag_set_textinfo_utf16(gfp, "TYER", str);
                 case 'v': return id3tag_set_fieldvalue_utf16(gfp, str);
             }
             ;;
