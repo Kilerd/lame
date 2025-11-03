@@ -52,7 +52,7 @@ fn bench_lame_sys_complete(c: &mut Criterion) {
     let frame_size = 1152;
     let num_frames = 1000;
     let pcm = generate_pcm_data(frame_size * num_frames);
-    let mut mp3_buffer = vec![0u8; 8192];
+    let mut mp3_buffer = vec![0u8; 624 * 1024];
 
     c.bench_function("lame-sys/complete_1000_frames_mono_q4", |b| {
         b.iter(|| {

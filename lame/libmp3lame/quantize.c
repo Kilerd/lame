@@ -78,7 +78,7 @@ init_xrpow_core_c(gr_info * const cod_info, FLOAT xrpow[576], int upper, FLOAT *
     for (i = 0; i <= upper; ++i) {
         tmp = fabs(cod_info->xr[i]);
         *sum += tmp;
-        xrpow[i] = sqrt(tmp * sqrt(tmp));
+        xrpow[i] = pow(tmp, 0.75);
 
         if (xrpow[i] > cod_info->xrpow_max)
             cod_info->xrpow_max = xrpow[i];
@@ -1677,7 +1677,7 @@ VBR_new_iteration_loop(lame_internal_flags * gfc, const FLOAT pe[2][2],
     const FLOAT (*const_l3_xmin)[2][SFBMAX] = (const FLOAT (*)[2][SFBMAX])l3_xmin;
     const FLOAT (*const_xrpow)[2][576] = (const FLOAT (*)[2][576])xrpow;
     const int (*const_max_bits)[2] = (const int (*)[2])max_bits;
-    
+
     (void) ms_ener_ratio; /* not used */
 
     memset(xrpow, 0, sizeof(xrpow));
@@ -1717,7 +1717,7 @@ VBR_new_iteration_loop(lame_internal_flags * gfc, const FLOAT pe[2][2],
         }
 
         for (; i < cfg->vbr_max_bitrate_index; i++) {
-            if (used_bits <= frameBits[i]) 
+            if (used_bits <= frameBits[i])
                 break;
         }
         if (i > cfg->vbr_max_bitrate_index) {
@@ -1726,7 +1726,7 @@ VBR_new_iteration_loop(lame_internal_flags * gfc, const FLOAT pe[2][2],
         if (pad > 0) {
             for (j = cfg->vbr_max_bitrate_index; j > i; --j) {
                 int const unused = frameBits[j] - used_bits;
-                if (unused <= pad) 
+                if (unused <= pad)
                     break;
             }
             eov->bitrate_index = j;
