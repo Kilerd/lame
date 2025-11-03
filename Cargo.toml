@@ -11,9 +11,17 @@ categories = ["multimedia::audio", "multimedia::encoding"]
 
 [dependencies]
 
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+mp3lame-encoder = "0.1"
+
 [build-dependencies]
 cc = "1.0"
 bindgen = "0.69"
 
 [features]
 default = []
+
+[[bench]]
+name = "encoder_comparison"
+harness = false

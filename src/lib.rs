@@ -83,14 +83,14 @@ mod ffi {
 }
 
 // 内部模块
-pub mod error;
 pub mod encoder;
+pub mod error;
 pub mod id3;
 
 // 重新导出公共 API
-pub use encoder::{LameEncoder, EncoderBuilder, Quality, VbrMode};
-pub use id3::{Id3Tag, genres};
+pub use encoder::{EncoderBuilder, LameEncoder, Quality, VbrMode};
 pub use error::{LameError, Result};
+pub use id3::{genres, Id3Tag};
 
 /// 获取 LAME 版本字符串
 ///
