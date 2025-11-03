@@ -337,8 +337,8 @@ dependencies = [
 name = "lame-sys"
 version = "0.1.0"
 dependencies = [
+ "autotools",
  "bindgen",
- "cc",
  "criterion",
  "mp3lame-encoder",
 ]

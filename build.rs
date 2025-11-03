@@ -4,73 +4,29 @@ use std::path::PathBuf;
 fn main() {
     // 获取 LAME 源代码路径
     let lame_dir = PathBuf::from("lame");
-    let libmp3lame_dir = lame_dir.join("libmp3lame");
     let include_dir = lame_dir.join("include");
 
-    // 1. 使用 cc crate 编译 LAME C 源代码
+    // 1. 使用 autotools 构建 LAME
     println!("cargo:rerun-if-changed=lame/");
 
-    let mut build = cc::Build::new();
+    let dst = autotools::Config::new(&lame_dir)
+        // 禁用不需要的功能
+        .disable("frontend", None)     // 不需要命令行工具
+        .disable("decoder", None)       // 不需要解码器
+        .disable("analyzer-hooks", None)
+        .disable("gtktest", None)
+        // 启用优化
+        .enable("nasm", None)          // 启用汇编优化（如果可用）
+        .enable("expopt", Some("full")) // 启用实验性优化
+        // 配置构建
+        .with("pic", None)             // Position Independent Code
+        .fast_build(true)              // 快速构建模式
+        // 构建静态库
+        .build();
 
-    // 添加 include 路径
-    build
-        .include(&lame_dir)           // 用于 config.h
-        .include(&include_dir)        // 用于 lame.h
-        .include(&libmp3lame_dir);    // 用于内部头文件
-
-    // 定义编译宏
-    build
-        .define("HAVE_CONFIG_H", None)
-        .define("TAKEHIRO_IEEE754_HACK", "1")  // 启用 IEEE 754 浮点优化
-        .define("FLOAT8", "float")              // 明确 FLOAT8 类型为 float
-        .define("REAL_IS_FLOAT", "1");          // 使用 float 而非 double
-
-    // 添加标准库头文件宏
-    if cfg!(target_os = "macos") || cfg!(target_os = "linux") {
-        build
-            .define("HAVE_LIMITS_H", "1")
-            .define("HAVE_ERRNO_H", "1")
-            .define("HAVE_FCNTL_H", "1")
-            .define("STDC_HEADERS", "1")
-            .define("HAVE_STDINT_H", "1");
-    }
-
-    // 核心源文件列表（20 个）
-    let source_files = [
-        "VbrTag.c",
-        "bitstream.c",
-        "encoder.c",
-        "fft.c",
-        "gain_analysis.c",
-        "id3tag.c",
-        "lame.c",
-        "newmdct.c",
-        "presets.c",
-        "psymodel.c",
-        "quantize.c",
-        "quantize_pvt.c",
-        "reservoir.c",
-        "set_get.c",
-        "tables.c",
-        "takehiro.c",
-        "util.c",
-        "vbrquantize.c",
-        "version.c",
-        "mpglib_interface.c",
-    ];
-
-    // 添加所有源文件
-    for file in &source_files {
-        build.file(libmp3lame_dir.join(file));
-    }
-
-    // 设置编译选项
-    build
-        .warnings(false)  // 禁用警告（LAME 代码有很多旧风格）
-        .opt_level(3);    // 最高优化级别
-
-    // 编译静态库
-    build.compile("mp3lame");
+    // 链接生成的静态库
+    println!("cargo:rustc-link-search=native={}/lib", dst.display());
+    println!("cargo:rustc-link-lib=static=mp3lame");
 
     // 链接数学库
     println!("cargo:rustc-link-lib=m");
@@ -82,7 +38,7 @@ fn main() {
         // 添加 clang 参数（include 路径）
         .clang_arg(format!("-I{}", lame_dir.display()))
         .clang_arg(format!("-I{}", include_dir.display()))
-        .clang_arg(format!("-I{}", libmp3lame_dir.display()))
+        .clang_arg(format!("-I{}/include", dst.display()))
         // 只生成需要的函数（编码 + ID3）
         .allowlist_function("lame_.*")
         .allowlist_function("id3tag_.*")

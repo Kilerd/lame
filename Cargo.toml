@@ -16,7 +16,7 @@ criterion = { version = "0.5", features = ["html_reports"] }
 mp3lame-encoder = "0.1"
 
 [build-dependencies]
-cc = "1.0"
+autotools = "0.2"
 bindgen = "0.69"
 
 [features]
