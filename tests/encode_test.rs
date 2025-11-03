@@ -250,3 +250,133 @@ fn test_error_handling() {
         println!("Mismatched channel length error: {:?}", result);
     }
 }
+
+#[test]
+fn test_mono_encoding() {
+    // 创建单声道编码器
+    let mut encoder = LameEncoder::builder()
+        .sample_rate(44100)
+        .channels(1) // 单声道
+        .bitrate(128)
+        .quality(Quality::Standard)
+        .build()
+        .expect("Failed to create mono encoder");
+
+    // 创建测试数据
+    let num_samples = 1152;
+    let pcm = vec![0i16; num_samples];
+
+    let mp3_buffer_size = (1.25 * num_samples as f64) as usize + 7200;
+    let mut mp3_buffer = vec![0u8; mp3_buffer_size];
+
+    // 使用 encode_mono 方法
+    let bytes_written = encoder
+        .encode_mono(&pcm, &mut mp3_buffer)
+        .expect("Mono encoding failed");
+
+    assert!(bytes_written > 0, "No bytes written for mono encoding");
+    println!("Mono encoded {} bytes", bytes_written);
+
+    // 刷新缓冲区
+    let final_bytes = encoder
+        .flush(&mut mp3_buffer)
+        .expect("Mono flush failed");
+
+    println!("Mono final flush: {} bytes", final_bytes);
+}
+
+#[test]
+fn test_mono_encoding_with_sine_wave() {
+    // 创建单声道编码器
+    let mut encoder = LameEncoder::builder()
+        .sample_rate(44100)
+        .channels(1)
+        .bitrate(192)
+        .build()
+        .expect("Failed to create mono encoder");
+
+    // 生成 440 Hz 正弦波
+    let num_samples = 1152;
+    let sample_rate = 44100.0;
+    let frequency = 440.0;
+
+    let mut pcm = vec![0i16; num_samples];
+    for i in 0..num_samples {
+        let t = i as f32 / sample_rate;
+        let sample = (2.0 * std::f32::consts::PI * frequency * t).sin();
+        pcm[i] = (sample * 16384.0) as i16;
+    }
+
+    let mp3_buffer_size = (1.25 * num_samples as f64) as usize + 7200;
+    let mut mp3_buffer = vec![0u8; mp3_buffer_size];
+
+    let bytes_written = encoder
+        .encode_mono(&pcm, &mut mp3_buffer)
+        .expect("Mono sine wave encoding failed");
+
+    assert!(bytes_written > 0);
+    println!("Mono sine wave encoded {} bytes", bytes_written);
+}
+
+#[test]
+fn test_mono_multiple_frames() {
+    // 创建单声道编码器
+    let mut encoder = LameEncoder::builder()
+        .sample_rate(44100)
+        .channels(1)
+        .bitrate(128)
+        .build()
+        .expect("Failed to create mono encoder");
+
+    let num_samples = 1152;
+    let mut total_bytes = 0;
+
+    // 编码多帧
+    for frame in 0..10 {
+        let pcm = vec![((frame * 1000) % 32767) as i16; num_samples];
+        let mut mp3_buffer = vec![0u8; 8192];
+
+        let bytes_written = encoder
+            .encode_mono(&pcm, &mut mp3_buffer)
+            .expect(&format!("Mono encoding frame {} failed", frame));
+
+        total_bytes += bytes_written;
+        println!("Mono frame {}: {} bytes", frame, bytes_written);
+    }
+
+    // 刷新
+    let mut mp3_buffer = vec![0u8; 8192];
+    let final_bytes = encoder
+        .flush(&mut mp3_buffer)
+        .expect("Mono flush failed");
+
+    total_bytes += final_bytes;
+
+    println!("Mono total bytes encoded: {}", total_bytes);
+    assert!(total_bytes > 0);
+}
+
+#[test]
+fn test_mono_different_bitrates() {
+    let bitrates = [64, 96, 128, 192, 256];
+
+    for &bitrate in &bitrates {
+        let mut encoder = LameEncoder::builder()
+            .sample_rate(44100)
+            .channels(1)
+            .bitrate(bitrate)
+            .build()
+            .expect(&format!("Failed to create mono encoder for {} kbps", bitrate));
+
+        let num_samples = 1152;
+        let pcm = vec![0i16; num_samples];
+        let mut mp3_buffer = vec![0u8; 8192];
+
+        let bytes_written = encoder
+            .encode_mono(&pcm, &mut mp3_buffer)
+            .expect(&format!("Mono encoding failed for {} kbps", bitrate));
+
+        println!("Mono bitrate {} kbps: {} bytes", bitrate, bytes_written);
+        assert!(bytes_written > 0);
+    }
+}

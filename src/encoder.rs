@@ -9,6 +9,8 @@ pub enum Quality {
     Best = 0,
     /// 接近最高质量
     High = 2,
+    /// 良好质量
+    Good = 4,
     /// 标准质量（推荐）
     Standard = 5,
     /// 快速编码
@@ -135,6 +137,57 @@ impl LameEncoder {
             let result = ffi::lame_encode_buffer_interleaved(
                 self.gfp,
                 pcm_interleaved.as_ptr() as *mut i16,
+                num_samples as i32,
+                mp3_buffer.as_mut_ptr(),
+                mp3_buffer.len() as i32,
+            );
+
+            if result < 0 {
+                Err(LameError::EncodingFailed(result))
+            } else {
+                Ok(result as usize)
+            }
+        }
+    }
+
+    /// 编码单声道 PCM 数据到 MP3
+    ///
+    /// # 参数
+    ///
+    /// * `pcm` - 单声道 PCM 样本（16-bit）
+    /// * `mp3_buffer` - 输出 MP3 数据的缓冲区
+    ///
+    /// # 返回
+    ///
+    /// 返回写入 `mp3_buffer` 的字节数
+    ///
+    /// # 示例
+    ///
+    /// ```no_run
+    /// use lame_sys::LameEncoder;
+    ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut encoder = LameEncoder::builder()
+    ///     .sample_rate(44100)
+    ///     .channels(1)  // 单声道
+    ///     .bitrate(128)
+    ///     .build()?;
+    ///
+    /// let pcm = vec![0i16; 1152];
+    /// let mut mp3_buffer = vec![0u8; 8192];
+    ///
+    /// let bytes_written = encoder.encode_mono(&pcm, &mut mp3_buffer)?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn encode_mono(&mut self, pcm: &[i16], mp3_buffer: &mut [u8]) -> Result<usize> {
+        let num_samples = pcm.len();
+
+        unsafe {
+            let result = ffi::lame_encode_buffer(
+                self.gfp,
+                pcm.as_ptr(),
+                pcm.as_ptr(), // 单声道使用相同的缓冲区
                 num_samples as i32,
                 mp3_buffer.as_mut_ptr(),
                 mp3_buffer.len() as i32,
