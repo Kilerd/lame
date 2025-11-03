@@ -13,7 +13,7 @@ categories = ["multimedia::audio", "multimedia::encoding"]
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
-mp3lame-encoder = "0.1"
+
 
 [build-dependencies]
 autotools = "0.2"

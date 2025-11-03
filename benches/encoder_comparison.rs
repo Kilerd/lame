@@ -44,27 +44,6 @@ fn bench_lame_sys_single_frame(c: &mut Criterion) {
     });
 }
 
-fn bench_mp3lame_encoder_single_frame(c: &mut Criterion) {
-    let pcm = generate_pcm_data(1152);
-    let mut mp3_buffer: Vec<MaybeUninit<u8>> = vec![MaybeUninit::uninit(); 8192];
-
-    c.bench_function("mp3lame-encoder/single_frame_mono_q4", |b| {
-        let mut encoder = mp3lame_encoder::Builder::new().unwrap();
-        encoder.set_num_channels(1).unwrap(); // 单声道
-        encoder.set_sample_rate(44100).unwrap();
-        encoder
-            .set_brate(mp3lame_encoder::Bitrate::Kbps192)
-            .unwrap();
-        encoder.set_quality(mp3lame_encoder::Quality::Good).unwrap(); // Quality = 4
-        let mut encoder = encoder.build().unwrap();
-
-        b.iter(|| {
-            let input = mp3lame_encoder::MonoPcm(black_box(&pcm));
-            encoder.encode(input, black_box(&mut mp3_buffer)).unwrap()
-        });
-    });
-}
-
 // ============================================================================
 // 场景 2: 完整编码流程（1000 frames = ~26 秒）- 单声道，Quality = 4
 // ============================================================================
@@ -98,42 +77,6 @@ fn bench_lame_sys_complete(c: &mut Criterion) {
             }
 
             let flush_bytes = encoder.flush(black_box(&mut mp3_buffer)).unwrap();
-            total_bytes + flush_bytes
-        });
-    });
-}
-
-fn bench_mp3lame_encoder_complete(c: &mut Criterion) {
-    let frame_size = 1152;
-    let num_frames = 1000;
-    let pcm = generate_pcm_data(frame_size * num_frames);
-    let mut mp3_buffer: Vec<MaybeUninit<u8>> = vec![MaybeUninit::uninit(); 8192];
-
-    c.bench_function("mp3lame-encoder/complete_1000_frames_mono_q4", |b| {
-        b.iter(|| {
-            let mut encoder = mp3lame_encoder::Builder::new().unwrap();
-            encoder.set_num_channels(1).unwrap(); // 单声道
-            encoder.set_sample_rate(44100).unwrap();
-            encoder
-                .set_brate(mp3lame_encoder::Bitrate::Kbps192)
-                .unwrap();
-            encoder.set_quality(mp3lame_encoder::Quality::Good).unwrap(); // Quality = 4
-            let mut encoder = encoder.build().unwrap();
-
-            let mut total_bytes = 0;
-            for i in 0..num_frames {
-                let start = i * frame_size;
-                let end = start + frame_size;
-
-                let input = mp3lame_encoder::MonoPcm(black_box(&pcm[start..end]));
-
-                let bytes = encoder.encode(input, black_box(&mut mp3_buffer)).unwrap();
-                total_bytes += bytes;
-            }
-
-            let flush_bytes = encoder
-                .flush::<mp3lame_encoder::FlushNoGap>(black_box(&mut mp3_buffer))
-                .unwrap();
             total_bytes + flush_bytes
         });
     });
