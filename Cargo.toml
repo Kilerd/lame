@@ -1,0 +1,19 @@
+[package]
+name = "lame-sys"
+version = "0.1.0"
+edition = "2021"
+authors = ["LAME Contributors", "Rust Bindings <rust@example.com>"]
+license = "LGPL-2.0"
+description = "Rust bindings for LAME MP3 encoder with safe wrapper"
+repository = "https://github.com/yourusername/lame-sys"
+keywords = ["lame", "mp3", "encoder", "audio", "codec"]
+categories = ["multimedia::audio", "multimedia::encoding"]
+
+[dependencies]
+
+[build-dependencies]
+cc = "1.0"
+bindgen = "0.69"
+
+[features]
+default = []

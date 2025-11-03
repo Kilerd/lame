@@ -94,3 +94,10 @@ cmake_install.cmake
 # Custom test files
 test_encode
 test_encode.c
+
+
+# Added by cargo
+
+/target
+
+output.mp3
