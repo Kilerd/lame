@@ -1,0 +1,96 @@
+# Compiled Object files
+*.o
+*.lo
+*.obj
+
+# Compiled Libraries
+*.a
+*.la
+*.lai
+*.so
+*.so.*
+*.dylib
+*.dll
+*.lib
+
+# Executables
+*.exe
+*.out
+frontend/lame
+frontend/mp3x
+frontend/mp3rtp
+
+# Libtool directories
+.libs/
+.deps/
+
+# Dependency tracking files
+*.Plo
+*.Tpo
+*.Po
+
+# Autotools generated files
+/config.h
+/config.log
+/config.status
+/config.cache
+/autom4te.cache/
+/stamp-h1
+/libtool
+
+# Generated Makefiles (from .am or .in files)
+Makefile
+!Makefile.am
+!Makefile.in
+!Makefile.unix
+!Makefile.MSVC
+!Makefile.B32
+
+# Generated from .in templates
+/lame.spec
+/libmp3lame/lame.pc
+
+# Build directories
+/build/
+/out/
+
+# IDE and Editor files
+*~
+*.swp
+*.swo
+*.bak
+.vscode/
+.idea/
+*.sublime-*
+.project
+.cproject
+.settings/
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Test outputs
+testcase_out.mp3
+test_*.mp3
+test_*.wav
+*.tmp
+
+# Documentation builds (if generated)
+doc/html/*.html
+doc/man/*.1
+!doc/html/index.html
+
+# CMake (if used)
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
+# Custom test files
+test_encode
+test_encode.c
