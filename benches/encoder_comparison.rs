@@ -85,9 +85,7 @@ fn bench_lame_sys_complete(c: &mut Criterion) {
 criterion_group!(
     benches,
     bench_lame_sys_single_frame,
-    bench_mp3lame_encoder_single_frame,
     bench_lame_sys_complete,
-    bench_mp3lame_encoder_complete,
 );
 
 criterion_main!(benches);
