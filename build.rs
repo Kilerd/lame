@@ -18,8 +18,11 @@ fn main() {
     cflags.push_str("-Wno-error=incompatible-pointer-types");
 
     // 启用 AVX2 和 FMA 指令集（如果 CPU 支持）
-    // 这会让 configure 检测到 immintrin.h 并定义 HAVE_IMMINTRIN_H
     cflags.push_str(" -mavx2 -mfma");
+
+    // 强制定义 HAVE_IMMINTRIN_H 和 HAVE_XMMINTRIN_H
+    // 如果 configure 检测失败，手动定义这些宏
+    cflags.push_str(" -DHAVE_IMMINTRIN_H=1 -DHAVE_XMMINTRIN_H=1");
 
     std::env::set_var("CFLAGS", &cflags);
 
