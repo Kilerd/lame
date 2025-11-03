@@ -6,7 +6,7 @@ if WITH_XMM
 noinst_LTLIBRARIES = liblamevectorroutines.la
 endif
 
-##liblamecpuroutines_la_LIBADD = 
+##liblamecpuroutines_la_LIBADD =
 ##liblamecpuroutines_la_LDFLAGS =
 
 INCLUDES = @INCLUDES@ \
@@ -20,6 +20,8 @@ xmm_sources = xmm_quantize_sub.c avx2_quantize_sub.c
 
 if WITH_XMM
 liblamevectorroutines_la_SOURCES = $(xmm_sources)
+# Add AVX2 compiler flags (set by configure for x86_64/i386 with AVX2 support)
+liblamevectorroutines_la_CFLAGS = @AVX2_CFLAGS@
 endif
 
 noinst_HEADERS = lame_intrin.h

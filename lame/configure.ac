@@ -765,6 +765,11 @@ x86_64|amd64)
 		WITH_VECTOR=yes
 	fi
 
+	# Set AVX2 compiler flags if AVX2 intrinsics are available
+	if test $ac_cv_header_immintrin_h = yes ; then
+		AVX2_CFLAGS="-mavx2 -mfma"
+	fi
+
 	AC_DEFINE(USE_FAST_LOG, 1, faster log implementation with less but enough precission)
 	;;
 *86)
@@ -772,6 +777,11 @@ x86_64|amd64)
 	if test $ac_cv_header_xmmintrin_h = yes ; then
 		WITH_XMM=yes
 		WITH_VECTOR=yes
+	fi
+
+	# Set AVX2 compiler flags if AVX2 intrinsics are available
+	if test $ac_cv_header_immintrin_h = yes ; then
+		AVX2_CFLAGS="-mavx2 -mfma"
 	fi
 
 	AC_DEFINE(USE_FAST_LOG, 1, faster log implementation with less but enough precission)
@@ -794,6 +804,9 @@ AM_CONDITIONAL(WITH_XMM, test "x${WITH_XMM}" = "xyes")
 AM_CONDITIONAL(WITH_VECTOR, test "x${WITH_VECTOR}" = "xyes")
 AC_MSG_CHECKING(if I have to build the internal vector lib)
 AC_MSG_RESULT(${WITH_VECTOR})
+
+# Export AVX2 compiler flags for use in Makefiles
+AC_SUBST(AVX2_CFLAGS)
 
 
 AC_PATH_PROG(NASM, nasm, no)

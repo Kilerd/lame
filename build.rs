@@ -9,7 +9,7 @@ fn main() {
     // 1. 使用 autotools 构建 LAME
     println!("cargo:rerun-if-changed=lame/");
 
-    // 设置 CFLAGS 以避免 Linux 上的编译错误和启用 AVX2
+    // 设置 CFLAGS 以避免 Linux 上的编译错误
     // LAME 源码中有一些类型不兼容的警告，在 Linux GCC 上会被视为错误
     let mut cflags = std::env::var("CFLAGS").unwrap_or_default();
     if !cflags.is_empty() {
@@ -17,32 +17,20 @@ fn main() {
     }
     cflags.push_str("-Wno-error=incompatible-pointer-types");
 
-    // 启用 AVX2 和 FMA 指令集（如果 CPU 支持）
-    cflags.push_str(" -mavx2 -mfma");
-
-    // 强制定义 HAVE_IMMINTRIN_H 和 HAVE_XMMINTRIN_H
-    // 如果 configure 检测失败，手动定义这些宏
-    cflags.push_str(" -DHAVE_IMMINTRIN_H=1 -DHAVE_XMMINTRIN_H=1");
-
     std::env::set_var("CFLAGS", &cflags);
-
-    // 确保 configure 能正确检测到 SSE/AVX2 支持
-    // 这对于构建 vector 库（包含 AVX2 优化）至关重要
-    std::env::set_var("ac_cv_header_xmmintrin_h", "yes");
-    std::env::set_var("ac_cv_header_immintrin_h", "yes");
 
     let dst = autotools::Config::new(&lame_dir)
         // 禁用不需要的功能
-        .disable("frontend", None)     // 不需要命令行工具
-        .disable("decoder", None)       // 不需要解码器
+        .disable("frontend", None) // 不需要命令行工具
+        .disable("decoder", None) // 不需要解码器
         .disable("analyzer-hooks", None)
         .disable("gtktest", None)
         // 启用优化
-        .enable("nasm", None)          // 启用汇编优化（如果可用）
+        .enable("nasm", None) // 启用汇编优化（如果可用）
         .enable("expopt", Some("full")) // 启用实验性优化
         // 配置构建
-        .with("pic", None)             // Position Independent Code
-        .fast_build(true)              // 快速构建模式
+        .with("pic", None) // Position Independent Code
+        .fast_build(true) // 快速构建模式
         // 构建静态库
         .build();
 
@@ -65,7 +53,7 @@ fn main() {
         .allowlist_function("lame_.*")
         .allowlist_function("id3tag_.*")
         .allowlist_function("get_lame_.*")
-        .allowlist_function("hip_.*")  // 解码器函数（可选）
+        .allowlist_function("hip_.*") // 解码器函数（可选）
         // 生成的类型
         .allowlist_type("lame_global_flags")
         .allowlist_type("hip_t")
