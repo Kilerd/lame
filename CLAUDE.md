@@ -153,6 +153,34 @@ Two types of global state structures (both initialized to zero):
    - Defined in `util.h`
    - Memory allocated in `lame_init_params()`, freed in `freegfc()`
 
+## GitHub Actions CI/CD
+
+### Automated Builds
+
+A GitHub Actions workflow is configured to automatically build Linux x86_64 shared libraries:
+
+**Workflow file:** `.github/workflows/build-release.yml`
+
+**Triggers:**
+- Automatic: Push tags matching `v*` (e.g., `v3.101.0`)
+- Manual: Via GitHub Actions UI (workflow_dispatch)
+
+**Build output:**
+- `libmp3lame.so.0.0.0` (shared library)
+- `lame.h` (public header)
+- Packaged as `.tar.gz` with installation instructions
+
+**Usage:**
+```bash
+# Create and push a release tag
+git tag v3.101.0
+git push origin v3.101.0
+
+# Or manually trigger from GitHub Actions UI
+```
+
+See `.github/RELEASE.md` for detailed instructions.
+
 ## Important Notes
 
 - **API is FROZEN:** The LAME public API in `include/lame.h` is frozen for stability. Don't modify it.

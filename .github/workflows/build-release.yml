@@ -1,0 +1,177 @@
+name: Build and Release LAME
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-linux-x86_64:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            autoconf \
+            automake \
+            libtool \
+            pkg-config \
+            nasm
+
+      - name: Get version from tag
+        id: get_version
+        run: |
+          if [ "${{ github.ref_type }}" == "tag" ]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+          else
+            VERSION=$(git describe --tags --always --dirty)
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+
+      - name: Configure LAME
+        run: |
+          ./configure \
+            --prefix=/usr \
+            --disable-decoder \
+            --disable-analyzer-hooks \
+            --disable-static \
+            --enable-shared \
+            --enable-nasm
+
+      - name: Build LAME
+        run: |
+          make -j$(nproc)
+
+      - name: Prepare release artifacts
+        run: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          RELEASE_DIR="libmp3lame-${VERSION}-linux-x86_64"
+          mkdir -p "${RELEASE_DIR}/lib"
+          mkdir -p "${RELEASE_DIR}/include"
+
+          # Copy shared library files
+          cp -P libmp3lame/.libs/libmp3lame.so* "${RELEASE_DIR}/lib/"
+
+          # Copy header file
+          cp include/lame.h "${RELEASE_DIR}/include/"
+
+          # Create README
+          cat > "${RELEASE_DIR}/README.md" << 'EOF'
+          # LAME MP3 Encoder Library
+
+          This package contains the LAME MP3 encoding library for Linux x86_64.
+
+          ## Contents
+
+          - `lib/libmp3lame.so.0.0.0` - Main shared library
+          - `lib/libmp3lame.so.0` - Soname symlink
+          - `lib/libmp3lame.so` - Development symlink
+          - `include/lame.h` - Public API header
+
+          ## Build Configuration
+
+          - Platform: Linux x86_64
+          - Features: Encoder only (decoder disabled)
+          - Optimizations: NASM assembler enabled
+
+          ## Installation
+
+          ```bash
+          # Copy library files
+          sudo cp lib/libmp3lame.so* /usr/local/lib/
+          sudo cp include/lame.h /usr/local/include/
+
+          # Update library cache
+          sudo ldconfig
+          ```
+
+          ## Usage
+
+          Compile your program with:
+          ```bash
+          gcc your_program.c -o your_program -lmp3lame
+          ```
+
+          ## Version
+
+          Version: ${{ steps.get_version.outputs.version }}
+          Built: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
+          ## License
+
+          LGPL v2 - See COPYING file in the source repository.
+          EOF
+
+          # Strip debug symbols to reduce size
+          strip --strip-debug "${RELEASE_DIR}/lib/libmp3lame.so.0.0.0"
+
+          # Create tarball
+          tar -czf "${RELEASE_DIR}.tar.gz" "${RELEASE_DIR}"
+
+          # Show file sizes
+          echo "=== Build Artifacts ==="
+          ls -lh "${RELEASE_DIR}/lib/"
+          echo "=== Archive Size ==="
+          ls -lh "${RELEASE_DIR}.tar.gz"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: libmp3lame-${{ steps.get_version.outputs.version }}-linux-x86_64
+          path: libmp3lame-*-linux-x86_64.tar.gz
+          retention-days: 90
+
+      - name: Create GitHub Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            libmp3lame-*-linux-x86_64.tar.gz
+          body: |
+            ## LAME MP3 Encoder Library - ${{ steps.get_version.outputs.version }}
+
+            ### Linux x86_64 Build
+
+            **Build Configuration:**
+            - Platform: Linux x86_64 (Ubuntu 22.04)
+            - Features: Encoder only (decoder and analyzer hooks disabled)
+            - Library Type: Shared library (.so)
+            - Optimizations: NASM assembler enabled
+
+            **Files Included:**
+            - `libmp3lame.so.0.0.0` - Main shared library
+            - `libmp3lame.so.0` - Soname symlink
+            - `libmp3lame.so` - Development symlink
+            - `lame.h` - Public API header
+            - `README.md` - Installation instructions
+
+            **Installation:**
+            ```bash
+            # Extract archive
+            tar -xzf libmp3lame-${{ steps.get_version.outputs.version }}-linux-x86_64.tar.gz
+            cd libmp3lame-${{ steps.get_version.outputs.version }}-linux-x86_64
+
+            # Install (requires sudo)
+            sudo cp lib/libmp3lame.so* /usr/local/lib/
+            sudo cp include/lame.h /usr/local/include/
+            sudo ldconfig
+            ```
+
+            **Verify Installation:**
+            ```bash
+            ldconfig -p | grep libmp3lame
+            ```
+
+            Built on: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
