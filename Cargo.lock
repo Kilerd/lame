@@ -340,6 +340,7 @@ dependencies = [
  "autotools",
  "bindgen",
  "criterion",
+ "mp3lame-encoder",
 ]
 
 [[package]]
@@ -393,6 +394,27 @@ name = "minimal-lexical"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
+
+[[package]]
+name = "mp3lame-encoder"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc8c8b5cdbe788ccd1098c3d3635298a011cffdebdd3460c9ca5060a7551557b"
+dependencies = [
+ "libc",
+ "mp3lame-sys",
+]
+
+[[package]]
+name = "mp3lame-sys"
+version = "0.1.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f746fa729eaf4c0a82ee438f0105d3d7f827f08e7d6ee4fa8fc5946171ba6652"
+dependencies = [
+ "autotools",
+ "cc",
+ "libc",
+]
 
 [[package]]
 name = "nom"

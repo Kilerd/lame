@@ -9,30 +9,18 @@ fn main() {
     // 1. 使用 autotools 构建 LAME
     println!("cargo:rerun-if-changed=lame/");
 
-    // 设置 CFLAGS 以避免 Linux 上的编译错误
-    // LAME 源码中有一些类型不兼容的警告，在 Linux GCC 上会被视为错误
-    let mut cflags = std::env::var("CFLAGS").unwrap_or_default();
-    if !cflags.is_empty() {
-        cflags.push(' ');
-    }
-    cflags.push_str("-Wno-error=incompatible-pointer-types");
-
-    std::env::set_var("CFLAGS", &cflags);
+    // 使用最简化配置（完全模仿竞品 mp3lame-sys）
+    // 测试假设：手动添加的优化标志可能反而降低性能
 
     let dst = autotools::Config::new(&lame_dir)
+        .disable_shared()
         .enable_static()
-        // 禁用不需要的功能
-        .disable("frontend", None) // 不需要命令行工具
-        .disable("decoder", None) // 不需要解码器
-        .disable("analyzer-hooks", None)
+        .disable("rpath", None)
+        .disable("frontend", None)
+        .disable("decoder", None)
         .disable("gtktest", None)
-        // 启用优化
-        .enable("nasm", None) // 启用汇编优化（如果可用）
-        .enable("expopt", Some("full")) // 启用实验性优化
-        // 配置构建
-        .with("pic", None) // Position Independent Code
-        .fast_build(true) // 快速构建模式
-        // 构建静态库
+        .with("pic", None)
+        .fast_build(true)
         .build();
 
     // 链接生成的静态库
