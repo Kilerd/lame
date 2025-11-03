@@ -26,6 +26,11 @@ fn main() {
 
     std::env::set_var("CFLAGS", &cflags);
 
+    // 确保 configure 能正确检测到 SSE/AVX2 支持
+    // 这对于构建 vector 库（包含 AVX2 优化）至关重要
+    std::env::set_var("ac_cv_header_xmmintrin_h", "yes");
+    std::env::set_var("ac_cv_header_immintrin_h", "yes");
+
     let dst = autotools::Config::new(&lame_dir)
         // 禁用不需要的功能
         .disable("frontend", None)     // 不需要命令行工具

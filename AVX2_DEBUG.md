@@ -149,7 +149,43 @@ cargo build --release
 #endif
 ```
 
-### Q3: 链接错误 - undefined reference to `has_AVX2_nasm`
+### Q3: 链接错误 - undefined symbol: fht_AVX2 / init_xrpow_core_avx2
+
+**原因**: vector 库没有被正确构建，导致 AVX2 函数未被编译
+
+**症状**:
+```
+rust-lld: error: undefined symbol: fht_AVX2
+rust-lld: error: undefined symbol: init_xrpow_core_avx2
+```
+
+**根本原因**:
+- `build.rs` 中强制定义了 `HAVE_IMMINTRIN_H=1`，使代码引用 AVX2 函数
+- 但 configure 没有检测到 SSE/AVX2 支持，导致 `WITH_XMM=no`
+- 结果 `liblamevectorroutines.la` 库没有被构建
+- 链接时找不到 AVX2 函数定义
+
+**解决方案**:
+
+已在 `build.rs` 中添加环境变量强制启用 vector 支持：
+
+```rust
+// 确保 configure 能正确检测到 SSE/AVX2 支持
+std::env::set_var("ac_cv_header_xmmintrin_h", "yes");
+std::env::set_var("ac_cv_header_immintrin_h", "yes");
+```
+
+**验证修复**:
+```bash
+# 清理并重新构建
+cargo clean
+cargo build --release
+
+# 或使用验证脚本
+./verify_avx2_build.sh
+```
+
+### Q4: 链接错误 - undefined reference to `has_AVX2_nasm`
 
 **原因**: NASM 代码没有正确编译
 
@@ -168,7 +204,7 @@ cd lame
 make clean && make
 ```
 
-### Q4: 性能没有提升
+### Q5: 性能没有提升
 
 **可能原因**:
 
