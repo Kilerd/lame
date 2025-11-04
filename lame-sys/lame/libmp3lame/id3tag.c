@@ -637,6 +637,143 @@ local_strdup_utf16_to_latin1(unsigned short const* utf16)
     return (char*)latin1;
 }
 
+/* Convert UTF-16 to UTF-8 */
+static char*
+local_strdup_utf16_to_utf8(unsigned short const* utf16)
+{
+    size_t utf8_len = 0;
+    size_t i, j;
+    unsigned char* utf8;
+    unsigned short const* src;
+    unsigned short bom;
+
+    if (utf16 == 0) {
+        return 0;
+    }
+
+    /* Get BOM and skip it in processing */
+    bom = utf16[0];
+    src = utf16;
+    if (hasUcs2ByteOrderMarker(bom)) {
+        src++; /* skip BOM */
+    }
+
+    /* First pass: calculate required UTF-8 buffer size */
+    for (i = 0; src[i] != 0; ) {
+        unsigned short c = toLittleEndian(bom, src[i]);
+
+        if (c < 0x80) {
+            utf8_len += 1;
+            i++;
+        }
+        else if (c < 0x800) {
+            utf8_len += 2;
+            i++;
+        }
+        else if (c >= 0xD800 && c <= 0xDBFF) {
+            /* High surrogate - check for low surrogate */
+            if (src[i+1] != 0) {
+                unsigned short c2 = toLittleEndian(bom, src[i+1]);
+                if (c2 >= 0xDC00 && c2 <= 0xDFFF) {
+                    /* Valid surrogate pair - 4 byte UTF-8 */
+                    utf8_len += 4;
+                    i += 2;
+                }
+                else {
+                    /* Invalid surrogate pair - treat as replacement char */
+                    utf8_len += 3;
+                    i++;
+                }
+            }
+            else {
+                /* Incomplete surrogate pair - treat as replacement char */
+                utf8_len += 3;
+                i++;
+            }
+        }
+        else if (c >= 0xDC00 && c <= 0xDFFF) {
+            /* Low surrogate without high surrogate - invalid, use replacement char */
+            utf8_len += 3;
+            i++;
+        }
+        else {
+            /* 3 byte UTF-8 */
+            utf8_len += 3;
+            i++;
+        }
+    }
+
+    /* Allocate UTF-8 buffer */
+    utf8 = lame_calloc(unsigned char, utf8_len + 1);
+    if (utf8 == 0) {
+        return 0;
+    }
+
+    /* Second pass: convert to UTF-8 */
+    j = 0;
+    for (i = 0; src[i] != 0; ) {
+        unsigned short c = toLittleEndian(bom, src[i]);
+
+        if (c < 0x80) {
+            /* 1 byte UTF-8: 0xxxxxxx */
+            utf8[j++] = (unsigned char)c;
+            i++;
+        }
+        else if (c < 0x800) {
+            /* 2 byte UTF-8: 110xxxxx 10xxxxxx */
+            utf8[j++] = (unsigned char)(0xC0 | (c >> 6));
+            utf8[j++] = (unsigned char)(0x80 | (c & 0x3F));
+            i++;
+        }
+        else if (c >= 0xD800 && c <= 0xDBFF) {
+            /* High surrogate - check for low surrogate */
+            if (src[i+1] != 0) {
+                unsigned short c2 = toLittleEndian(bom, src[i+1]);
+                if (c2 >= 0xDC00 && c2 <= 0xDFFF) {
+                    /* Valid surrogate pair - convert to codepoint and encode as 4 byte UTF-8 */
+                    unsigned int codepoint = 0x10000 + ((c & 0x3FF) << 10) + (c2 & 0x3FF);
+                    utf8[j++] = (unsigned char)(0xF0 | (codepoint >> 18));
+                    utf8[j++] = (unsigned char)(0x80 | ((codepoint >> 12) & 0x3F));
+                    utf8[j++] = (unsigned char)(0x80 | ((codepoint >> 6) & 0x3F));
+                    utf8[j++] = (unsigned char)(0x80 | (codepoint & 0x3F));
+                    i += 2;
+                }
+                else {
+                    /* Invalid surrogate - use replacement character U+FFFD */
+                    utf8[j++] = 0xEF;
+                    utf8[j++] = 0xBF;
+                    utf8[j++] = 0xBD;
+                    i++;
+                }
+            }
+            else {
+                /* Incomplete surrogate - use replacement character U+FFFD */
+                utf8[j++] = 0xEF;
+                utf8[j++] = 0xBF;
+                utf8[j++] = 0xBD;
+                i++;
+            }
+        }
+        else if (c >= 0xDC00 && c <= 0xDFFF) {
+            /* Low surrogate without high - use replacement character U+FFFD */
+            utf8[j++] = 0xEF;
+            utf8[j++] = 0xBF;
+            utf8[j++] = 0xBD;
+            i++;
+        }
+        else {
+            /* 3 byte UTF-8: 1110xxxx 10xxxxxx 10xxxxxx */
+            utf8[j++] = (unsigned char)(0xE0 | (c >> 12));
+            utf8[j++] = (unsigned char)(0x80 | ((c >> 6) & 0x3F));
+            utf8[j++] = (unsigned char)(0x80 | (c & 0x3F));
+            i++;
+        }
+    }
+
+    utf8[j] = 0; /* null terminate */
+    return (char*)utf8;
+}
+
 
 static int
 id3tag_set_genre_utf8(lame_t gfp, unsigned short const* text)
@@ -658,7 +795,15 @@ id3tag_set_genre_utf8(lame_t gfp, unsigned short const* text)
             return 0;
         }
     }
-    ret = id3v2_add_utf8_lng(gfp, ID_GENRE, 0, text);
+    /* Convert UTF-16 to UTF-8 before passing to id3v2_add_utf8_lng */
+    {
+        char* utf8_text = local_strdup_utf16_to_utf8(text);
+        if (utf8_text == 0) {
+            return -254; /* memory problem */
+        }
+        ret = id3v2_add_utf8_lng(gfp, ID_GENRE, 0, utf8_text);
+        free(utf8_text);
+    }
     if (ret == 0) {
         gfc->tag_spec.flags |= CHANGED_FLAG;
         gfc->tag_spec.genre_id3v1 = GENRE_INDEX_OTHER;
@@ -1128,6 +1273,9 @@ int
 id3tag_set_textinfo_utf8(lame_t gfp, char const *id, unsigned short const *text)
 {
     uint32_t const frame_id = toID3v2TagId(id);
+    char* utf8_text = 0;
+    int ret;
+
     if (frame_id == 0) {
         return -1;
     }
@@ -1137,30 +1285,52 @@ id3tag_set_textinfo_utf8(lame_t gfp, char const *id, unsigned short const *text)
     if (text == 0) {
         return 0;
     }
-    if (frame_id == ID_TXXX || frame_id == ID_WXXX || frame_id == ID_COMMENT) {
-        return id3tag_set_userinfo_utf8(gfp, frame_id, text);
-    }
+
+    /* ID_GENRE needs UTF-16 input (it handles conversion internally) */
     if (frame_id == ID_GENRE) {
         return id3tag_set_genre_utf8(gfp, text);
     }
+
+    /* Convert UTF-16 to UTF-8 for all other operations */
+    utf8_text = local_strdup_utf16_to_utf8(text);
+    if (utf8_text == 0) {
+        return -254; /* memory problem */
+    }
+
+    if (frame_id == ID_TXXX || frame_id == ID_WXXX || frame_id == ID_COMMENT) {
+        ret = id3tag_set_userinfo_utf8(gfp, frame_id, utf8_text);
+        free(utf8_text);
+        return ret;
+    }
     if (frame_id == ID_PCST) {
-        return id3v2_add_utf8_lng(gfp, frame_id, 0, text);
+        ret = id3v2_add_utf8_lng(gfp, frame_id, 0, utf8_text);
+        free(utf8_text);
+        return ret;
     }
     if (frame_id == ID_USER) {
-        return id3v2_add_utf8_lng(gfp, frame_id, text, 0);
+        ret = id3v2_add_utf8_lng(gfp, frame_id, utf8_text, 0);
+        free(utf8_text);
+        return ret;
     }
     if (frame_id == ID_WFED) {
-        return id3v2_add_utf8_lng(gfp, frame_id, text, 0); /* iTunes expects WFED to be a text frame */
+        ret = id3v2_add_utf8_lng(gfp, frame_id, utf8_text, 0); /* iTunes expects WFED to be a text frame */
+        free(utf8_text);
+        return ret;
     }
     if (isFrameIdMatching(frame_id, FRAME_ID('T', 0, 0, 0))
       ||isFrameIdMatching(frame_id, FRAME_ID('W', 0, 0, 0))) {
 #if 0
         if (isNumericString(frame_id)) {
+            free(utf8_text);
             return -2;  /* must be Latin-1 encoded */
         }
 #endif
-        return id3v2_add_utf8_lng(gfp, frame_id, 0, text);
+        ret = id3v2_add_utf8_lng(gfp, frame_id, 0, utf8_text);
+        free(utf8_text);
+        return ret;
     }
+
+    free(utf8_text);
     return -255;        /* not supported by now */
 }
 
