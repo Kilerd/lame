@@ -1,0 +1,29 @@
+[package]
+name = "lame-sys"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Rust bindings for LAME MP3 encoder with safe wrapper"
+repository = "https://github.com/yourusername/lame-sys"
+keywords = ["lame", "mp3", "encoder", "audio", "codec"]
+categories = ["multimedia::audio", "multimedia::encoding"]
+
+[dependencies]
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+mp3lame-encoder = "0.2.1"  # 竞品库，用于性能对比
+
+
+[build-dependencies]
+autotools = "0.2"
+bindgen = "0.69"
+
+[features]
+default = []
+
+[[bench]]
+name = "encoder_comparison"
+harness = false
+

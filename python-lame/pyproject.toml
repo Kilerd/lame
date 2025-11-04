@@ -1,0 +1,35 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "lame"
+version = "0.1.0"
+description = "Python bindings for LAME MP3 encoder"
+authors = [
+    { name = "LAME Contributors" },
+]
+license = { text = "LGPL-2.0" }
+readme = "README.md"
+requires-python = ">=3.8"
+keywords = ["lame", "mp3", "encoder", "audio", "codec"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Rust",
+    "Topic :: Multimedia :: Sound/Audio :: Conversion",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/lame-sys"
+Repository = "https://github.com/yourusername/lame-sys"
+
+[tool.maturin]
+features = ["pyo3/extension-module"]

@@ -1,0 +1,23 @@
+[package]
+name = "python-lame"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Python bindings for LAME MP3 encoder"
+repository = "https://github.com/yourusername/lame-sys"
+keywords = ["lame", "mp3", "encoder", "python", "pyo3"]
+categories = ["multimedia::audio", "multimedia::encoding", "api-bindings"]
+
+[lib]
+name = "lame"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.22", features = ["extension-module", "abi3-py38"] }
+numpy = "0.22"
+bytemuck = { version = "1.14", features = ["derive"] }
+lame-sys.workspace = true
+
+[build-dependencies]
+pyo3-build-config = "0.22"

@@ -1,31 +1,19 @@
-[package]
-name = "lame-sys"
+[workspace]
+members = [
+    "lame-sys",
+    "python-lame",
+]
+resolver = "2"
+
+[workspace.package]
 version = "0.1.0"
 edition = "2021"
-authors = ["LAME Contributors", "Rust Bindings <rust@example.com>"]
 license = "LGPL-2.0"
-description = "Rust bindings for LAME MP3 encoder with safe wrapper"
-repository = "https://github.com/yourusername/lame-sys"
-keywords = ["lame", "mp3", "encoder", "audio", "codec"]
-categories = ["multimedia::audio", "multimedia::encoding"]
+authors = ["LAME Contributors", "Rust Bindings <rust@example.com>"]
 
-[dependencies]
-
-[dev-dependencies]
-criterion = { version = "0.5", features = ["html_reports"] }
-mp3lame-encoder = "0.2.1"  # 竞品库，用于性能对比
-
-
-[build-dependencies]
-autotools = "0.2"
-bindgen = "0.69"
-
-[features]
-default = []
-
-[[bench]]
-name = "encoder_comparison"
-harness = false
+[workspace.dependencies]
+# 共享的依赖版本
+lame-sys = { path = "lame-sys" }
 
 [profile.release]
 opt-level = 3
