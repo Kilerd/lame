@@ -118,7 +118,7 @@ def benchmark_lame_pyo3_single_frame(num_iterations=100):
         builder.sample_rate(44100)
         builder.channels(1)
         builder.bitrate(128)
-        builder.quality(lame_pyo3.Quality.Good)
+        builder.quality(lame_pyo3.Quality.Standard)
         encoder = builder.build()
         encoder.encode_mono(pcm_bytes)
 
@@ -131,7 +131,7 @@ def benchmark_lame_pyo3_single_frame(num_iterations=100):
         builder.sample_rate(44100)
         builder.channels(1)
         builder.bitrate(128)
-        builder.quality(lame_pyo3.Quality.Good)
+        builder.quality(lame_pyo3.Quality.Standard)
         encoder = builder.build()
 
         # 计时开始
@@ -168,7 +168,7 @@ def benchmark_lameenc_single_frame(num_iterations=100):
         encoder.set_bit_rate(128)
         encoder.set_in_sample_rate(44100)
         encoder.set_channels(1)
-        encoder.set_quality(4)  # Quality = 4 (Good)
+        encoder.set_quality(5)  # Quality = 5 (Standard)
         encoder.silence()
         encoder.encode(pcm_np.tobytes())
 
@@ -181,7 +181,7 @@ def benchmark_lameenc_single_frame(num_iterations=100):
         encoder.set_bit_rate(128)
         encoder.set_in_sample_rate(44100)
         encoder.set_channels(1)
-        encoder.set_quality(4)
+        encoder.set_quality(5)
         encoder.silence()
 
         # 计时开始
@@ -220,7 +220,7 @@ def benchmark_lame_pyo3_complete_flow(num_frames=1000, num_iterations=100):
     builder.sample_rate(44100)
     builder.channels(1)
     builder.bitrate(128)
-    builder.quality(lame_pyo3.Quality.Good)
+    builder.quality(lame_pyo3.Quality.Standard)
     encoder = builder.build()
 
     for i in range(10):
@@ -237,7 +237,7 @@ def benchmark_lame_pyo3_complete_flow(num_frames=1000, num_iterations=100):
         builder.sample_rate(44100)
         builder.channels(1)
         builder.bitrate(128)
-        builder.quality(lame_pyo3.Quality.Good)
+        builder.quality(lame_pyo3.Quality.Standard)
         encoder = builder.build()
 
         # 计时开始
@@ -299,7 +299,7 @@ def benchmark_lameenc_complete_flow(num_frames=1000, num_iterations=100):
     encoder.set_bit_rate(128)
     encoder.set_in_sample_rate(44100)
     encoder.set_channels(1)
-    encoder.set_quality(4)
+    encoder.set_quality(5)
     encoder.silence()
 
     for i in range(10):
@@ -316,7 +316,7 @@ def benchmark_lameenc_complete_flow(num_frames=1000, num_iterations=100):
         encoder.set_bit_rate(128)
         encoder.set_in_sample_rate(44100)
         encoder.set_channels(1)
-        encoder.set_quality(4)
+        encoder.set_quality(5)
         encoder.silence()
 
         # 计时开始
@@ -404,7 +404,7 @@ def main():
     print("  - 采样率: 44100 Hz")
     print("  - 声道数: 1 (单声道)")
     print("  - 比特率: 128 kbps")
-    print("  - 质量级别: 4 (Good)")
+    print("  - 质量级别: 5 (Standard)")
     print("  - 测试数据: 440 Hz 正弦波")
     print()
 
